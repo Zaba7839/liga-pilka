@@ -45,17 +45,23 @@
       align-items: center;
       background-color: #111;
       padding: 10px 20px;
+      margin-bottom: 20px;
     }
     .topbar input {
       margin-left: 10px;
       padding: 5px;
       font-size: 0.9em;
+      width: 120px;
     }
     h1, h2 {
       text-align: center;
     }
     .hidden {
       display: none;
+    }
+    .dimmed {
+      opacity: 0.3;
+      pointer-events: none;
     }
     label {
       display: block;
@@ -100,19 +106,18 @@
 <body>
   <div class="sidebar">
     <h2>Twoje Tabele</h2>
-    <ul id="table-list">
-      <!-- Lista tabel -->
-    </ul>
+    <ul id="table-list"></ul>
   </div>
   <div class="main-content">
     <div class="topbar">
       <label for="username">Użytkownik:</label>
-      <input type="text" id="username" placeholder="Nazwa użytkownika" style="width: 120px;">
+      <input type="text" id="username" placeholder="Nazwa użytkownika">
       <label for="password">Hasło:</label>
-      <input type="password" id="password" placeholder="Hasło" style="width: 120px;">
+      <input type="password" id="password" placeholder="Hasło">
     </div>
+
     <h1>Symulator Ligi</h1>
-    <div class="form-section">
+    <div class="form-section" id="mode-section">
       <label for="mode">Wybierz tryb:</label>
       <select id="mode">
         <option value="">-- Wybierz --</option>
@@ -214,7 +219,6 @@
         const input = document.createElement('input');
         input.type = 'text';
         input.placeholder = `Klub ${i + 1}`;
-        input.required = true;
         teamInputsDiv.appendChild(input);
       }
       teamNamesSection.classList.remove('hidden');
@@ -245,13 +249,17 @@
       leagueNameHeader.textContent = tableNameInput.value.trim() || 'Tabela Ligowa';
       matchEntry.classList.remove('hidden');
       leagueTableSection.classList.remove('hidden');
-      tabelaSetup.classList.add('hidden');
-      teamNamesSection.classList.add('hidden');
 
-      // Dodaj do listy tabel
+      tabelaSetup.classList.add('dimmed');
+      teamNamesSection.classList.add('dimmed');
+
       const li = document.createElement('li');
       li.textContent = leagueNameHeader.textContent;
       tableList.appendChild(li);
+    });
+
+    toggleMatchFormBtn.addEventListener('click', () => {
+      matchForm.classList.toggle('hidden');
     });
 
     function updateTeamSelects() {
@@ -260,9 +268,83 @@
       teams.forEach(team => {
         const option1 = document.createElement('option');
         option1.value = team.name;
-        option
-::contentReference[oaicite:28]{index=28}
- 
+        option1.textContent = team.name;
+        homeTeamSelect.appendChild(option1);
 
+        const option2 = document.createElement('option');
+        option2.value = team.name;
+        option2.textContent = team.name;
+        awayTeamSelect.appendChild(option2);
+      });
+    }
 
- 
+    updateTableBtn.addEventListener('click', () => {
+      const home = homeTeamSelect.value;
+      const away = awayTeamSelect.value;
+      const score = scoreInput.value.trim();
+      const match = score.match(/^(\d+)-(\d+)$/);
+      if (home === away) {
+        alert('Kluby muszą być różne.');
+        return;
+      }
+      if (!match) {
+        alert('Wprowadź wynik w formacie np. 3-2.');
+        return;
+      }
+      const homeGoals = parseInt(match[1]);
+      const awayGoals = parseInt(match[2]);
+
+      const homeTeam = teams.find(t => t.name === home);
+      const awayTeam = teams.find(t => t.name === away);
+
+      homeTeam.played++;
+      awayTeam.played++;
+      homeTeam.goalsFor += homeGoals;
+      homeTeam.goalsAgainst += awayGoals;
+      awayTeam.goalsFor += awayGoals;
+      awayTeam.goalsAgainst += homeGoals;
+
+      if (homeGoals > awayGoals) {
+        homeTeam.wins++; homeTeam.points += 2;
+        awayTeam.losses++;
+      } else if (homeGoals < awayGoals) {
+        awayTeam.wins++; awayTeam.points += 2;
+        homeTeam.losses++;
+      } else {
+        homeTeam.draws++; homeTeam.points += 1;
+        awayTeam.draws++; awayTeam.points += 1;
+      }
+
+      renderTable();
+      scoreInput.value = '';
+    });
+
+    function renderTable() {
+      teams.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        if ((b.goalsFor - b.goalsAgainst) !== (a.goalsFor - a.goalsAgainst))
+          return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
+        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+        return a.goalsAgainst - b.goalsAgainst;
+      });
+
+      tableBody.innerHTML = '';
+      teams.forEach((team, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${team.name}</td>
+          <td>${team.played}</td>
+          <td>${team.wins}</td>
+          <td>${team.draws}</td>
+          <td>${team.losses}</td>
+          <td>${team.goalsFor}</td>
+          <td>${team.goalsAgainst}</td>
+          <td>${team.points}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>
