@@ -60,6 +60,7 @@
       <option value="tabela">Klasyczna tabela</option>
       <option value="drabinka">Drabinka</option>
     </select>
+    <button id="mode-next">Dalej</button>
   </div>
 
   <div id="tabela-setup" class="form-section hidden">
@@ -109,6 +110,7 @@
 
   <script>
     const modeSelect = document.getElementById('mode');
+    const modeNextBtn = document.getElementById('mode-next');
     const tabelaSetup = document.getElementById('tabela-setup');
     const teamNamesSection = document.getElementById('team-names');
     const teamInputsDiv = document.getElementById('team-inputs');
@@ -127,14 +129,11 @@
 
     let teams = [];
 
-    modeSelect.addEventListener('change', () => {
+    modeNextBtn.addEventListener('click', () => {
       if (modeSelect.value === 'tabela') {
         tabelaSetup.classList.remove('hidden');
       } else {
-        tabelaSetup.classList.add('hidden');
-        teamNamesSection.classList.add('hidden');
-        matchEntry.classList.add('hidden');
-        leagueTableSection.classList.add('hidden');
+        alert('Opcja Drabinka jeszcze nie działa.');
       }
     });
 
@@ -202,12 +201,11 @@
       const home = homeTeamSelect.value;
       const away = awayTeamSelect.value;
       const score = scoreInput.value.trim();
-      const scorePattern = /^(\d+)-(\d+)$/;
+      const match = score.match(/^(\d+)-(\d+)$/);
       if (home === away) {
         alert('Kluby muszą być różne.');
         return;
       }
-      const match = score.match(scorePattern);
       if (!match) {
         alert('Wprowadź wynik w formacie np. 3-2.');
         return;
@@ -218,26 +216,22 @@
       const homeTeam = teams.find(t => t.name === home);
       const awayTeam = teams.find(t => t.name === away);
 
-      homeTeam.played += 1;
-      awayTeam.played += 1;
+      homeTeam.played++;
+      awayTeam.played++;
       homeTeam.goalsFor += homeGoals;
       homeTeam.goalsAgainst += awayGoals;
       awayTeam.goalsFor += awayGoals;
       awayTeam.goalsAgainst += homeGoals;
 
       if (homeGoals > awayGoals) {
-        homeTeam.wins += 1;
-        awayTeam.losses += 1;
-        homeTeam.points += 2;
+        homeTeam.wins++; homeTeam.points += 2;
+        awayTeam.losses++;
       } else if (homeGoals < awayGoals) {
-        awayTeam.wins += 1;
-        homeTeam.losses += 1;
-        awayTeam.points += 2;
+        awayTeam.wins++; awayTeam.points += 2;
+        homeTeam.losses++;
       } else {
-        homeTeam.draws += 1;
-        awayTeam.draws += 1;
-        homeTeam.points += 1;
-        awayTeam.points += 1;
+        homeTeam.draws++; homeTeam.points += 1;
+        awayTeam.draws++; awayTeam.points += 1;
       }
 
       renderTable();
@@ -247,8 +241,31 @@
     function renderTable() {
       teams.sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
-        const aGoalDiff = a.goalsFor - a.goalsAgainst;
-        const bGoalDiff = b.goalsFor - b.goalsAgainst;
-        if (bGoalDiff !== aGoalDiff) return bGoalDiff
-::contentReference[oaicite:31]{index=31}
+        if ((b.goalsFor - b.goalsAgainst) !== (a.goalsFor - a.goalsAgainst))
+          return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
+        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+        return a.goalsAgainst - b.goalsAgainst;
+      });
+
+      tableBody.innerHTML = '';
+      teams.forEach((team, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${team.name}</td>
+          <td>${team.played}</td>
+          <td>${team.wins}</td>
+          <td>${team.draws}</td>
+          <td>${team.losses}</td>
+          <td>${team.goalsFor}</td>
+          <td>${team.goalsAgainst}</td>
+          <td>${team.points}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>
+
  
