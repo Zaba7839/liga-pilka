@@ -10,7 +10,46 @@
       background-color: #000;
       color: #FFD700;
       margin: 0;
+      padding: 0;
+      display: flex;
+    }
+    .sidebar {
+      width: 200px;
+      background-color: #111;
       padding: 20px;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+    .sidebar h2 {
+      color: #FFD700;
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+    .sidebar ul li {
+      margin-bottom: 10px;
+      cursor: pointer;
+      color: #FFD700;
+    }
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      background-color: #111;
+      padding: 10px 20px;
+    }
+    .topbar input {
+      margin-left: 10px;
+      padding: 5px;
+      font-size: 0.9em;
     }
     h1, h2 {
       text-align: center;
@@ -49,63 +88,87 @@
     .form-section input {
       width: 100%;
     }
+    #match-form {
+      display: flex;
+      flex-direction: column;
+    }
+    #match-form.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h1>Symulator Ligi</h1>
-  <div class="form-section">
-    <label for="mode">Wybierz tryb:</label>
-    <select id="mode">
-      <option value="">-- Wybierz --</option>
-      <option value="tabela">Klasyczna tabela</option>
-      <option value="drabinka">Drabinka</option>
-    </select>
-    <button id="mode-next">Dalej</button>
+  <div class="sidebar">
+    <h2>Twoje Tabele</h2>
+    <ul id="table-list">
+      <!-- Lista tabel -->
+    </ul>
   </div>
+  <div class="main-content">
+    <div class="topbar">
+      <label for="username">Użytkownik:</label>
+      <input type="text" id="username" placeholder="Nazwa użytkownika" style="width: 120px;">
+      <label for="password">Hasło:</label>
+      <input type="password" id="password" placeholder="Hasło" style="width: 120px;">
+    </div>
+    <h1>Symulator Ligi</h1>
+    <div class="form-section">
+      <label for="mode">Wybierz tryb:</label>
+      <select id="mode">
+        <option value="">-- Wybierz --</option>
+        <option value="tabela">Klasyczna tabela</option>
+        <option value="drabinka">Drabinka</option>
+      </select>
+      <button id="mode-next">Dalej</button>
+    </div>
 
-  <div id="tabela-setup" class="form-section hidden">
-    <label for="team-count">Ilość klubów:</label>
-    <input type="number" id="team-count" min="2" max="100" />
-    <label for="table-name">Nazwa tabeli:</label>
-    <input type="text" id="table-name" />
-    <button id="next-step">Dalej</button>
-  </div>
+    <div id="tabela-setup" class="form-section hidden">
+      <label for="team-count">Ilość klubów:</label>
+      <input type="number" id="team-count" min="2" max="100" />
+      <label for="table-name">Nazwa tabeli:</label>
+      <input type="text" id="table-name" />
+      <button id="next-step">Dalej</button>
+    </div>
 
-  <div id="team-names" class="form-section hidden">
-    <h2>Wprowadź nazwy klubów</h2>
-    <div id="team-inputs"></div>
-    <button id="create-table">Stwórz</button>
-  </div>
+    <div id="team-names" class="form-section hidden">
+      <h2>Wprowadź nazwy klubów</h2>
+      <div id="team-inputs"></div>
+      <button id="create-table">Stwórz</button>
+    </div>
 
-  <div id="match-entry" class="form-section hidden">
-    <h2>Dodaj mecz</h2>
-    <label for="home-team">Gospodarze:</label>
-    <select id="home-team"></select>
-    <label for="away-team">Goście:</label>
-    <select id="away-team"></select>
-    <label for="score">Wynik (np. 3-2):</label>
-    <input type="text" id="score" placeholder="np. 3-2" />
-    <button id="update-table">Uaktualnij</button>
-  </div>
+    <div id="match-entry" class="form-section hidden">
+      <h2>Dodaj mecz</h2>
+      <div id="match-form">
+        <label for="home-team">Gospodarze:</label>
+        <select id="home-team"></select>
+        <label for="away-team">Goście:</label>
+        <select id="away-team"></select>
+        <label for="score">Wynik (np. 3-2):</label>
+        <input type="text" id="score" placeholder="np. 3-2" />
+        <button id="update-table">Uaktualnij</button>
+      </div>
+      <button id="toggle-match-form">Schowaj</button>
+    </div>
 
-  <div id="league-table" class="form-section hidden">
-    <h2 id="league-name"></h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Pozycja</th>
-          <th>Klub</th>
-          <th>M</th>
-          <th>W</th>
-          <th>R</th>
-          <th>P</th>
-          <th>Gole +</th>
-          <th>Gole -</th>
-          <th>Punkty</th>
-        </tr>
-      </thead>
-      <tbody id="table-body"></tbody>
-    </table>
+    <div id="league-table" class="form-section hidden">
+      <h2 id="league-name"></h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Pozycja</th>
+            <th>Klub</th>
+            <th>M</th>
+            <th>W</th>
+            <th>R</th>
+            <th>P</th>
+            <th>Gole +</th>
+            <th>Gole -</th>
+            <th>Punkty</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
   </div>
 
   <script>
@@ -116,6 +179,8 @@
     const teamInputsDiv = document.getElementById('team-inputs');
     const createTableBtn = document.getElementById('create-table');
     const matchEntry = document.getElementById('match-entry');
+    const matchForm = document.getElementById('match-form');
+    const toggleMatchFormBtn = document.getElementById('toggle-match-form');
     const homeTeamSelect = document.getElementById('home-team');
     const awayTeamSelect = document.getElementById('away-team');
     const scoreInput = document.getElementById('score');
@@ -126,6 +191,7 @@
     const nextStepBtn = document.getElementById('next-step');
     const teamCountInput = document.getElementById('team-count');
     const tableNameInput = document.getElementById('table-name');
+    const tableList = document.getElementById('table-list');
 
     let teams = [];
 
@@ -179,6 +245,13 @@
       leagueNameHeader.textContent = tableNameInput.value.trim() || 'Tabela Ligowa';
       matchEntry.classList.remove('hidden');
       leagueTableSection.classList.remove('hidden');
+      tabelaSetup.classList.add('hidden');
+      teamNamesSection.classList.add('hidden');
+
+      // Dodaj do listy tabel
+      const li = document.createElement('li');
+      li.textContent = leagueNameHeader.textContent;
+      tableList.appendChild(li);
     });
 
     function updateTeamSelects() {
@@ -187,85 +260,9 @@
       teams.forEach(team => {
         const option1 = document.createElement('option');
         option1.value = team.name;
-        option1.textContent = team.name;
-        homeTeamSelect.appendChild(option1);
+        option
+::contentReference[oaicite:28]{index=28}
+ 
 
-        const option2 = document.createElement('option');
-        option2.value = team.name;
-        option2.textContent = team.name;
-        awayTeamSelect.appendChild(option2);
-      });
-    }
-
-    updateTableBtn.addEventListener('click', () => {
-      const home = homeTeamSelect.value;
-      const away = awayTeamSelect.value;
-      const score = scoreInput.value.trim();
-      const match = score.match(/^(\d+)-(\d+)$/);
-      if (home === away) {
-        alert('Kluby muszą być różne.');
-        return;
-      }
-      if (!match) {
-        alert('Wprowadź wynik w formacie np. 3-2.');
-        return;
-      }
-      const homeGoals = parseInt(match[1]);
-      const awayGoals = parseInt(match[2]);
-
-      const homeTeam = teams.find(t => t.name === home);
-      const awayTeam = teams.find(t => t.name === away);
-
-      homeTeam.played++;
-      awayTeam.played++;
-      homeTeam.goalsFor += homeGoals;
-      homeTeam.goalsAgainst += awayGoals;
-      awayTeam.goalsFor += awayGoals;
-      awayTeam.goalsAgainst += homeGoals;
-
-      if (homeGoals > awayGoals) {
-        homeTeam.wins++; homeTeam.points += 2;
-        awayTeam.losses++;
-      } else if (homeGoals < awayGoals) {
-        awayTeam.wins++; awayTeam.points += 2;
-        homeTeam.losses++;
-      } else {
-        homeTeam.draws++; homeTeam.points += 1;
-        awayTeam.draws++; awayTeam.points += 1;
-      }
-
-      renderTable();
-      scoreInput.value = '';
-    });
-
-    function renderTable() {
-      teams.sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        if ((b.goalsFor - b.goalsAgainst) !== (a.goalsFor - a.goalsAgainst))
-          return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
-        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-        return a.goalsAgainst - b.goalsAgainst;
-      });
-
-      tableBody.innerHTML = '';
-      teams.forEach((team, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${team.name}</td>
-          <td>${team.played}</td>
-          <td>${team.wins}</td>
-          <td>${team.draws}</td>
-          <td>${team.losses}</td>
-          <td>${team.goalsFor}</td>
-          <td>${team.goalsAgainst}</td>
-          <td>${team.points}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
-  </script>
-</body>
-</html>
 
  
