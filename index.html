@@ -47,11 +47,10 @@
       padding: 10px 20px;
       margin-bottom: 20px;
     }
-    .topbar input {
+    .topbar button {
       margin-left: 10px;
-      padding: 5px;
+      padding: 5px 10px;
       font-size: 0.9em;
-      width: 120px;
     }
     h1, h2 {
       text-align: center;
@@ -101,19 +100,53 @@
     #match-form.hidden {
       display: none;
     }
+    #auth-section {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 10px;
+    }
+    #auth-section button {
+      margin-left: 10px;
+    }
+    #login-form, #register-form {
+      background-color: #111;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    #login-form input, #register-form input {
+      width: 100%;
+      margin-bottom: 5px;
+    }
   </style>
 </head>
 <body>
   <div class="sidebar">
     <h2>Twoje Tabele</h2>
     <ul id="table-list"></ul>
+    <button id="add-table">Dodaj</button>
   </div>
   <div class="main-content">
     <div class="topbar">
-      <label for="username">Użytkownik:</label>
-      <input type="text" id="username" placeholder="Nazwa użytkownika">
-      <label for="password">Hasło:</label>
-      <input type="password" id="password" placeholder="Hasło">
+      <div id="auth-section">
+        <button id="show-login">Logowanie</button>
+        <button id="show-register">Rejestracja</button>
+      </div>
+    </div>
+
+    <div id="login-form" class="hidden">
+      <h2>Logowanie</h2>
+      <input type="text" id="login-username" placeholder="Nazwa użytkownika">
+      <input type="password" id="login-password" placeholder="Hasło">
+      <button id="login-btn">Zaloguj</button>
+      <button id="hide-login">Ukryj</button>
+    </div>
+
+    <div id="register-form" class="hidden">
+      <h2>Rejestracja</h2>
+      <input type="text" id="register-username" placeholder="Nazwa użytkownika">
+      <input type="password" id="register-password" placeholder="Hasło">
+      <button id="register-btn">Zarejestruj</button>
+      <button id="hide-register">Ukryj</button>
     </div>
 
     <h1>Symulator Ligi</h1>
@@ -175,176 +208,219 @@
       </table>
     </div>
   </div>
+<script>
+  let currentUser = null;
+  let currentTables = {};
 
-  <script>
-    const modeSelect = document.getElementById('mode');
-    const modeNextBtn = document.getElementById('mode-next');
-    const tabelaSetup = document.getElementById('tabela-setup');
-    const teamNamesSection = document.getElementById('team-names');
-    const teamInputsDiv = document.getElementById('team-inputs');
-    const createTableBtn = document.getElementById('create-table');
-    const matchEntry = document.getElementById('match-entry');
-    const matchForm = document.getElementById('match-form');
-    const toggleMatchFormBtn = document.getElementById('toggle-match-form');
-    const homeTeamSelect = document.getElementById('home-team');
-    const awayTeamSelect = document.getElementById('away-team');
-    const scoreInput = document.getElementById('score');
-    const updateTableBtn = document.getElementById('update-table');
-    const leagueTableSection = document.getElementById('league-table');
-    const leagueNameHeader = document.getElementById('league-name');
-    const tableBody = document.getElementById('table-body');
-    const nextStepBtn = document.getElementById('next-step');
-    const teamCountInput = document.getElementById('team-count');
-    const tableNameInput = document.getElementById('table-name');
-    const tableList = document.getElementById('table-list');
+  // Elementy
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const showLogin = document.getElementById('show-login');
+  const showRegister = document.getElementById('show-register');
+  const hideLogin = document.getElementById('hide-login');
+  const hideRegister = document.getElementById('hide-register');
+  const loginBtn = document.getElementById('login-btn');
+  const registerBtn = document.getElementById('register-btn');
+  const tableList = document.getElementById('table-list');
+  const addTableBtn = document.getElementById('add-table');
 
-    let teams = [];
+  showLogin.onclick = () => {
+    loginForm.classList.remove('hidden');
+    registerForm.classList.add('hidden');
+  };
 
-    modeNextBtn.addEventListener('click', () => {
-      if (modeSelect.value === 'tabela') {
-        tabelaSetup.classList.remove('hidden');
-      } else {
-        alert('Opcja Drabinka jeszcze nie działa.');
-      }
-    });
+  hideLogin.onclick = () => loginForm.classList.add('hidden');
+  showRegister.onclick = () => {
+    registerForm.classList.remove('hidden');
+    loginForm.classList.add('hidden');
+  };
+  hideRegister.onclick = () => registerForm.classList.add('hidden');
 
-    nextStepBtn.addEventListener('click', () => {
-      const count = parseInt(teamCountInput.value);
-      if (isNaN(count) || count < 2) {
-        alert('Podaj poprawną liczbę klubów (min. 2)');
-        return;
-      }
-      teamInputsDiv.innerHTML = '';
-      for (let i = 0; i < count; i++) {
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = `Klub ${i + 1}`;
-        teamInputsDiv.appendChild(input);
-      }
-      teamNamesSection.classList.remove('hidden');
-    });
+  registerBtn.onclick = () => {
+    const username = document.getElementById('register-username').value;
+    const password = document.getElementById('register-password').value;
+    if (!username || !password) return alert("Wypełnij wszystkie pola!");
 
-    createTableBtn.addEventListener('click', () => {
-      const inputs = teamInputsDiv.querySelectorAll('input');
-      teams = [];
-      for (let input of inputs) {
-        const name = input.value.trim();
-        if (!name) {
-          alert('Wszystkie nazwy klubów muszą być wypełnione.');
-          return;
-        }
-        teams.push({
-          name,
-          played: 0,
-          wins: 0,
-          draws: 0,
-          losses: 0,
-          goalsFor: 0,
-          goalsAgainst: 0,
-          points: 0
-        });
-      }
-      updateTeamSelects();
-      renderTable();
-      leagueNameHeader.textContent = tableNameInput.value.trim() || 'Tabela Ligowa';
-      matchEntry.classList.remove('hidden');
-      leagueTableSection.classList.remove('hidden');
+    let users = JSON.parse(localStorage.getItem('users')) || {};
+    if (users[username]) return alert("Użytkownik już istnieje!");
 
-      tabelaSetup.classList.add('dimmed');
-      teamNamesSection.classList.add('dimmed');
+    users[username] = password;
+    localStorage.setItem('users', JSON.stringify(users));
+    alert("Zarejestrowano!");
+    registerForm.classList.add('hidden');
+  };
 
+  loginBtn.onclick = () => {
+    const username = document.getElementById('login-username').value;
+    const password = document.getElementById('login-password').value;
+    const users = JSON.parse(localStorage.getItem('users')) || {};
+    if (users[username] !== password) return alert("Błędne dane logowania");
+
+    currentUser = username;
+    currentTables = JSON.parse(localStorage.getItem(`tables_${currentUser}`)) || {};
+    loadTableList();
+    alert("Zalogowano!");
+    loginForm.classList.add('hidden');
+  };
+
+  function saveTables() {
+    if (currentUser)
+      localStorage.setItem(`tables_${currentUser}`, JSON.stringify(currentTables));
+  }
+
+  function loadTableList() {
+    tableList.innerHTML = '';
+    Object.keys(currentTables).forEach(name => {
       const li = document.createElement('li');
-      li.textContent = leagueNameHeader.textContent;
+      li.textContent = name;
+      li.onclick = () => loadTable(name);
       tableList.appendChild(li);
     });
+  }
 
-    toggleMatchFormBtn.addEventListener('click', () => {
-      matchForm.classList.toggle('hidden');
+  let teams = [];
+
+  document.getElementById('mode-next').onclick = () => {
+    const mode = document.getElementById('mode').value;
+    if (mode === 'tabela') {
+      document.getElementById('tabela-setup').classList.remove('hidden');
+    } else {
+      alert("Tylko klasyczna tabela jest dostępna.");
+    }
+  };
+
+  document.getElementById('next-step').onclick = () => {
+    const count = parseInt(document.getElementById('team-count').value);
+    const inputDiv = document.getElementById('team-inputs');
+    inputDiv.innerHTML = '';
+    for (let i = 0; i < count; i++) {
+      const input = document.createElement('input');
+      input.placeholder = `Klub ${i + 1}`;
+      inputDiv.appendChild(input);
+    }
+    document.getElementById('team-names').classList.remove('hidden');
+  };
+
+  document.getElementById('create-table').onclick = () => {
+    const inputs = document.querySelectorAll('#team-inputs input');
+    const tableName = document.getElementById('table-name').value;
+    if (!currentUser) return alert("Musisz się zalogować!");
+
+    teams = Array.from(inputs).map(input => ({
+      name: input.value.trim(),
+      played: 0,
+      wins: 0,
+      draws: 0,
+      losses: 0,
+      goalsFor: 0,
+      goalsAgainst: 0,
+      points: 0
+    }));
+
+    if (teams.some(t => !t.name)) return alert("Wpisz wszystkie nazwy klubów!");
+
+    currentTables[tableName] = JSON.parse(JSON.stringify(teams));
+    saveTables();
+    loadTable(tableName);
+    loadTableList();
+
+    document.getElementById('tabela-setup').classList.add('dimmed');
+    document.getElementById('team-names').classList.add('dimmed');
+  };
+
+  function loadTable(name) {
+    teams = JSON.parse(JSON.stringify(currentTables[name]));
+    document.getElementById('league-name').textContent = name;
+    document.getElementById('match-entry').classList.remove('hidden');
+    document.getElementById('league-table').classList.remove('hidden');
+    updateTeamSelects();
+    renderTable();
+  }
+
+  function updateTeamSelects() {
+    const home = document.getElementById('home-team');
+    const away = document.getElementById('away-team');
+    home.innerHTML = '';
+    away.innerHTML = '';
+    teams.forEach(team => {
+      const opt1 = document.createElement('option');
+      const opt2 = document.createElement('option');
+      opt1.value = opt2.value = team.name;
+      opt1.textContent = opt2.textContent = team.name;
+      home.appendChild(opt1);
+      away.appendChild(opt2);
     });
+  }
 
-    function updateTeamSelects() {
-      homeTeamSelect.innerHTML = '';
-      awayTeamSelect.innerHTML = '';
-      teams.forEach(team => {
-        const option1 = document.createElement('option');
-        option1.value = team.name;
-        option1.textContent = team.name;
-        homeTeamSelect.appendChild(option1);
+  document.getElementById('update-table').onclick = () => {
+    const home = document.getElementById('home-team').value;
+    const away = document.getElementById('away-team').value;
+    const score = document.getElementById('score').value.trim();
+    const match = score.match(/^(\d+)-(\d+)$/);
+    if (!match) return alert("Zły format wyniku");
+    if (home === away) return alert("Kluby muszą być różne");
 
-        const option2 = document.createElement('option');
-        option2.value = team.name;
-        option2.textContent = team.name;
-        awayTeamSelect.appendChild(option2);
-      });
+    const hGoals = parseInt(match[1]), aGoals = parseInt(match[2]);
+    const h = teams.find(t => t.name === home);
+    const a = teams.find(t => t.name === away);
+
+    h.played++; a.played++;
+    h.goalsFor += hGoals; h.goalsAgainst += aGoals;
+    a.goalsFor += aGoals; a.goalsAgainst += hGoals;
+
+    if (hGoals > aGoals) {
+      h.wins++; h.points += 2; a.losses++;
+    } else if (hGoals < aGoals) {
+      a.wins++; a.points += 2; h.losses++;
+    } else {
+      h.draws++; a.draws++; h.points++; a.points++;
     }
 
-    updateTableBtn.addEventListener('click', () => {
-      const home = homeTeamSelect.value;
-      const away = awayTeamSelect.value;
-      const score = scoreInput.value.trim();
-      const match = score.match(/^(\d+)-(\d+)$/);
-      if (home === away) {
-        alert('Kluby muszą być różne.');
-        return;
-      }
-      if (!match) {
-        alert('Wprowadź wynik w formacie np. 3-2.');
-        return;
-      }
-      const homeGoals = parseInt(match[1]);
-      const awayGoals = parseInt(match[2]);
+    renderTable();
+    document.getElementById('score').value = '';
+    const name = document.getElementById('league-name').textContent;
+    currentTables[name] = JSON.parse(JSON.stringify(teams));
+    saveTables();
+  };
 
-      const homeTeam = teams.find(t => t.name === home);
-      const awayTeam = teams.find(t => t.name === away);
-
-      homeTeam.played++;
-      awayTeam.played++;
-      homeTeam.goalsFor += homeGoals;
-      homeTeam.goalsAgainst += awayGoals;
-      awayTeam.goalsFor += awayGoals;
-      awayTeam.goalsAgainst += homeGoals;
-
-      if (homeGoals > awayGoals) {
-        homeTeam.wins++; homeTeam.points += 2;
-        awayTeam.losses++;
-      } else if (homeGoals < awayGoals) {
-        awayTeam.wins++; awayTeam.points += 2;
-        homeTeam.losses++;
-      } else {
-        homeTeam.draws++; homeTeam.points += 1;
-        awayTeam.draws++; awayTeam.points += 1;
-      }
-
-      renderTable();
-      scoreInput.value = '';
+  function renderTable() {
+    const tbody = document.getElementById('table-body');
+    teams.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+      return a.goalsAgainst - b.goalsAgainst;
     });
 
-    function renderTable() {
-      teams.sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        if ((b.goalsFor - b.goalsAgainst) !== (a.goalsFor - a.goalsAgainst))
-          return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
-        if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-        return a.goalsAgainst - b.goalsAgainst;
-      });
+    tbody.innerHTML = '';
+    teams.forEach((team, i) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${team.name}</td>
+        <td>${team.played}</td>
+        <td>${team.wins}</td>
+        <td>${team.draws}</td>
+        <td>${team.losses}</td>
+        <td>${team.goalsFor}</td>
+        <td>${team.goalsAgainst}</td>
+        <td>${team.points}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
 
-      tableBody.innerHTML = '';
-      teams.forEach((team, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${team.name}</td>
-          <td>${team.played}</td>
-          <td>${team.wins}</td>
-          <td>${team.draws}</td>
-          <td>${team.losses}</td>
-          <td>${team.goalsFor}</td>
-          <td>${team.goalsAgainst}</td>
-          <td>${team.points}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }
-  </script>
+  document.getElementById('toggle-match-form').onclick = () => {
+    const form = document.getElementById('match-form');
+    form.classList.toggle('hidden');
+  };
+
+  document.getElementById('add-table').onclick = () => {
+    document.getElementById('tabela-setup').classList.remove('dimmed', 'hidden');
+    document.getElementById('team-names').classList.remove('dimmed');
+    document.getElementById('team-names').classList.add('hidden');
+    document.getElementById('match-entry').classList.add('hidden');
+    document.getElementById('league-table').classList.add('hidden');
+  };
+</script>
 </body>
 </html>
